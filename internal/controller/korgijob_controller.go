@@ -34,10 +34,18 @@ import (
 	esupvgrycapv1 "es.upv.grycap/korgi/api/v1"
 )
 
+// Resource represents a resource with name, max value, and available value
+type Resource struct {
+	Name      string
+	Count     int
+	Available int
+}
+
 // KorgiJobReconciler reconciles a KorgiJob object
 type KorgiJobReconciler struct {
 	client.Client
-	Scheme *runtime.Scheme
+	Scheme    *runtime.Scheme
+	Resources []Resource // List of resources
 }
 
 //+kubebuilder:rbac:groups=es.upv.grycap.es.upv.grycap,resources=korgijobs,verbs=get;list;watch;create;update;patch;delete
@@ -57,6 +65,18 @@ type KorgiJobReconciler struct {
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.16.3/pkg/reconcile
 func (r *KorgiJobReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	log := log.FromContext(ctx)
+
+	// Update resources
+	var nodes corev1.NodeList
+	if err := r.List(ctx, &nodes); err != nil {
+		log.Error(err, "Unable to list nodes")
+		return ctrl.Result{}, err
+	}
+	r.Resources = nil
+	for _, node := range nodes.Items {
+		log.Info("Node Capacity: ", "node", node.Name, "capacity", node.Status.Capacity)
+		log.Info("Node Allocatable: ", "node", node.Name, "allocatable", node.Status.Allocatable)
+	}
 
 	log.Info("Reconciling KorgiJob: ", "namespace", req.Namespace, "name ", req.Name)
 
