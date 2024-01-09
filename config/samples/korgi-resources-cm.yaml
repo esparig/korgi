@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: korgi-resources-config
+data:
+  # GPU resources across nodes (from bigger to smaller)
+  mig2g: "nvidia.com/mig-2g.12gb"
+  mig1g: "nvidia.com/mig-1g.6gb"
+
+
+
